@@ -73,6 +73,8 @@ generateField gx gy x y n = field
           -- calculate dangers for non-mine squares
           field = updateDangers rf
 
+-- this whole section about updating the dangers for a map of mines can be implemented really easily
+-- with repa stencils.
 updateDangers :: Field -> Field
 updateDangers f = f { getField = imap (\i->imap (\j c->updateDanger f i j)) $ getField f }
 
