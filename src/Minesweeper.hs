@@ -69,7 +69,9 @@ generateField gx gy x y n = field
           ry = randomRs (0,y-1) gy
           ur = takeUnique n (Prelude.zip rx ry) []
           f  = Field x y $ replicate x (replicate y (Square (Danger 0) False))
-          rf = Prelude.foldr (\c a->Field x y $ twodupdate (getField a) c (Square (Mine) False)) f ur
+          rf = Prelude.foldr
+                  (\c a->Field x y $
+                      twodupdate (getField a) c (Square (Mine) False)) f ur
           -- calculate dangers for non-mine squares
           field = updateDangers rf
 
