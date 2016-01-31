@@ -6,10 +6,10 @@ import Prelude hiding (map, zipWith)
 
 import qualified Data.Vector as V
 import           Data.Array.Repa as R hiding ((++))
-import           Data.Array.Repa.Repr.Vector as R
-import           Data.Array.Repa.Stencil as R
-import           Data.Array.Repa.Stencil.Dim2 as R
-import           Data.Array.Repa.Algorithms.Randomish as R
+import           Data.Array.Repa.Repr.Vector
+import           Data.Array.Repa.Stencil
+import           Data.Array.Repa.Stencil.Dim2
+import           Data.Array.Repa.Algorithms.Randomish
 
 import System.Random
 
@@ -36,7 +36,7 @@ emptySquare = Square (Danger 0) False
 -- the field is row-major
 -- note: with the new repa representation, the width and height of the array
 -- are encoded in the array as the shape
-data Field = Field { getField :: R.Array R.V R.DIM2 Square }
+data Field = Field { getField :: Array V DIM2 Square }
 
 instance Show Danger where
     show Mine       = "*"
@@ -51,10 +51,10 @@ instance Show Square where
     show (Square d _) = show d
 
 instance Show Field where
-    show (Field f) = let (R.Z R.:. x R.:. y) = R.extent f in
+    show (Field f) = let (Z :. x :. y) = extent f in
         V.foldl1' (++)
           $ V.imap (\i a -> if i /= 0 then (if mod i y == 0 then '\n' else ' ') : show a else show a)
-          $ R.toVector f
+          $ toVector f
 
 -- take n unique values from a list. the third argument is the seen list
 takeUnique :: (Eq n, Eq a, Num n) => n -> [a] -> [a]
@@ -74,18 +74,18 @@ generateField :: (RandomGen g)
 generateField g x y n = updateDangers $ Field f
     where rs = takeUnique n $ randomRs (0, (x * y) - 1) g
           fv = V.replicate (x * y) emptySquare V.// zip rs (repeat $ Square Mine False)
-          f  = R.fromVector (R.Z R.:. x R.:. y) fv
+          f  = fromVector (Z :. x :. y) fv
 
 updateDangers :: Field -> Field
 updateDangers (Field f) = Field
                         . computeVectorS -- convert from delayed array back to vector array
-                        . R.zipWith updateDanger f -- update the field with the new dangers we found
-                        . R.mapStencil2 (R.BoundConst 0) stencil -- perform the convolution
-                        . R.map (\s->if isMine s then 1 else 0) -- turn mines into 1s and others into 0s
+                        . zipWith updateDanger f -- update the field with the new dangers we found
+                        . mapStencil2 (BoundConst 0) stencil -- perform the convolution
+                        . map (\s->if isMine s then 1 else 0) -- turn mines into 1s and others into 0s
                         $ f
-    where stencil = [R.stencil2|1 1 1
-                                1 0 1
-                                1 1 1|]
+    where stencil = [stencil2|1 1 1
+                              1 0 1
+                              1 1 1|]
 
 updateDanger :: Square -> Int -> Square
 updateDanger (Square (Danger _) r) d = Square (Danger d) r
