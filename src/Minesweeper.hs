@@ -4,6 +4,8 @@ module Minesweeper where
 
 import Prelude hiding (map, zipWith)
 
+import           Data.Maybe (fromJust)
+
 import qualified Data.Vector as V
 import           Data.Array.Repa as R hiding ((++))
 import           Data.Array.Repa.Repr.Vector
@@ -42,13 +44,14 @@ instance Show Danger where
     show Mine       = "*"
     -- any danger level is guarenteed to be 1 digit, because the most neighbors
     -- any square can have is 8
+    --show (Danger 0) = " "
     show (Danger d) = show d
 
 instance Show Square where
-    --show (Square d True)  = show d
-    --show (Square _ False) = " "
+    show (Square d True)  = show d
+    show (Square _ False) = " "
     --debug show
-    show (Square d _) = show d
+    --show (Square d _) = show d
 
 instance Show Field where
     show (Field f) = let (Z :. x :. y) = extent f in
@@ -94,3 +97,35 @@ updateDanger s _ = s
 isMine :: Square -> Bool
 isMine (Square Mine _) = True
 isMine _               = False
+
+isRevealedMine :: Square -> Bool
+isRevealedMine (Square Mine True) = True
+isRevealedMine _                  = False
+
+isMineOrRevealed :: Square -> Bool
+isMineOrRevealed (Square Mine False)      = True
+isMineOrRevealed (Square (Danger _) True) = True
+isMineOrRevealed _                        = False
+
+-- reveal spot
+-- coordinates are measured from top left of grid
+-- the basic reveal is to just set the reveal mask for that spot to be True,
+-- and return the Left Field if that spot is a mine, and Right Field if it's
+-- not
+-- past that, you could reasonably space-fill the revealed area if there are
+-- no mines in the surrounding areas, much like most implementations for
+-- playing but I think we can leave that task on the consumer of the game,
+-- and just have this a "recorder of events" of sorts
+reveal :: Int   -- x value of spot to reveal
+       -> Int   -- y value of spot to reveal
+       -> Field -- field to reveal spot on
+       -> Field -- no computation is done to imply whether or not a mine was hit
+reveal x y (Field f) = Field (fromJust (computeP (R.traverse f id (update x y))))
+  where update x y square s@(Z :. sx :. sy) | x == sx && y == sy = (square s){isRevealed = True}
+        update x y square s = square s
+
+hitMine :: Field -> Bool
+hitMine = fromJust . foldAllP (||) False . R.map isRevealedMine . getField
+
+solved :: Field -> Bool
+solved = fromJust . foldAllP (&&) True . R.map isMineOrRevealed . getField
