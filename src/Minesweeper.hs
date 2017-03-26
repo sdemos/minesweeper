@@ -34,7 +34,7 @@ data Square = Square { getDanger  :: Danger
 -- For minesweeper, there are a couple of things that we need to keep track of
 -- First, we need the locations of the mines
 -- We also need which squares are revealed at any given time
--- the numbers are calculatable, but I think that we should calculate them 
+-- the numbers are calculatable, but I think that we should calculate them
 -- once at the beginning and then store them
 -- the field is row-major
 data Field = Field { getWidth  :: Int
@@ -119,12 +119,12 @@ takeUnique n (x:xs) seen | x `Prelude.notElem` seen = takeUnique (n-1) xs (x:see
 
 -- reveal spot
 -- coordinates are measured from top left of grid
--- the basic reveal is to just set the reveal mask for that spot to be True, 
--- and return the Left Field if that spot is a mine, and Right Field if it's 
+-- the basic reveal is to just set the reveal mask for that spot to be True,
+-- and return the Left Field if that spot is a mine, and Right Field if it's
 -- not
--- past that, you could reasonably space-fill the revealed area if there are 
--- no mines in the surrounding areas, much like most implementations for 
--- playing but I think we can leave that task on the consumer of the game, 
+-- past that, you could reasonably space-fill the revealed area if there are
+-- no mines in the surrounding areas, much like most implementations for
+-- playing but I think we can leave that task on the consumer of the game,
 -- and just have this a "recorder of events" of sorts
 reveal :: Int   -- x value of spot to reveal
        -> Int   -- y value of spot to reveal

@@ -31,7 +31,7 @@ emptySquare = Square (Danger 0) False
 -- For minesweeper, there are a couple of things that we need to keep track of
 -- First, we need the locations of the mines
 -- We also need which squares are revealed at any given time
--- the numbers are calculatable, but I think that we should calculate them 
+-- the numbers are calculatable, but I think that we should calculate them
 -- once at the beginning and then store them
 -- the field is row-major
 -- note: with the new repa representation, the width and height of the array
@@ -77,12 +77,12 @@ generateField g x y n = updateDangers $ Field f
           f  = fromVector (Z :. x :. y) fv
 
 updateDangers :: Field -> Field
-updateDangers (Field f) = Field
-                        . computeVectorS -- convert from delayed array back to vector array
-                        . zipWith updateDanger f -- update the field with the new dangers we found
-                        . mapStencil2 (BoundConst 0) stencil -- perform the convolution
-                        . map (\s->if isMine s then 1 else 0) -- turn mines into 1s and others into 0s
-                        $ f
+updateDangers = Field
+              . computeVectorS -- convert from delayed array back to vector array
+              . zipWith updateDanger f -- update the field with the new dangers we found
+              . mapStencil2 (BoundConst 0) stencil -- perform the convolution
+              . map (\s->if isMine s then 1 else 0) -- turn mines into 1s and others into 0s
+              . getField
     where stencil = [stencil2|1 1 1
                               1 0 1
                               1 1 1|]
